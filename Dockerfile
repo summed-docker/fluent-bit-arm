@@ -21,8 +21,8 @@ RUN apt-get update && \
       pkg-config \
       libsystemd-dev \
       zlib1g-dev \
-	  git \
-	  ca-certificates
+      git \
+      ca-certificates
 
 RUN mkdir -p /fluent-bit/bin /fluent-bit/etc /fluent-bit/log /tmp/src/
 
