@@ -2,9 +2,9 @@ FROM arm32v7/debian:stretch as builder
 
 # Fluent Bit version
 ENV FLB_MAJOR 1
-ENV FLB_MINOR 1
-ENV FLB_PATCH 4
-ENV FLB_VERSION 1.0.4
+ENV FLB_MINOR 0
+ENV FLB_PATCH 6
+ENV FLB_VERSION 1.0.6
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -20,11 +20,13 @@ RUN apt-get update && \
       libsasl2-dev \
       pkg-config \
       libsystemd-dev \
-      zlib1g-dev
+      zlib1g-dev \
+	  git \
+	  ca-certificates
 
 RUN mkdir -p /fluent-bit/bin /fluent-bit/etc /fluent-bit/log /tmp/src/
 
-COPY . /tmp/src/
+RUN git clone -b v$FLB_VERSION --depth 1 https://github.com/fluent/fluent-bit.git /tmp/src
 
 RUN rm -rf /tmp/src/build/*
 
@@ -47,14 +49,12 @@ RUN make -j $(getconf _NPROCESSORS_ONLN)
 RUN install bin/fluent-bit /fluent-bit/bin/
 
 # Configuration files
-COPY conf/fluent-bit.conf \
-     conf/parsers.conf \
-     conf/parsers_java.conf \
-     conf/parsers_extra.conf \
-     conf/parsers_openstack.conf \
-     conf/parsers_cinder.conf \
-     conf/plugins.conf \
-     /fluent-bit/etc/
+RUN cp \
+/tmp/src/conf/* \
+/fluent-bit/etc/
+
+# Add custom configuration files
+COPY ./conf/* /fluent-bit/etc/
 
 FROM arm32v7/debian:stable-slim
 
